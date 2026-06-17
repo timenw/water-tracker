@@ -53,11 +53,11 @@ class WeightRecord {
 }
 
 class UserProfile {
-  final double? height; // cm
-  final double? targetWeight; // kg
-  final int dailyWaterGoal; // ml
-  final String? wakeUpTime;
-  final String? sleepTime;
+  double? height; // cm
+  double? targetWeight; // kg
+  int dailyWaterGoal; // ml
+  String? wakeUpTime;
+  String? sleepTime;
   bool isPremium;
 
   UserProfile({

@@ -28,7 +28,7 @@ class _StatsTabState extends State<StatsTab> {
     final weightStats = await _dataService.getMonthlyWeightRecords();
     
     setState(() {
-      _weeklyWater = waterStats;
+      _weeklyWater = Map<String, int>.from(waterStats);
       _monthlyWeight = weightStats;
       _loading = false;
     });

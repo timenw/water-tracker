@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 import '../services/data_service.dart';
 import '../services/notification_service.dart';
 import '../services/premium_service.dart';
@@ -103,10 +102,9 @@ class _SettingsTabState extends State<SettingsTab> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => _PremiumSheet(
-        premiumService: _premiumService,
-        onPurchased: () {
+        onPurchased: () async {
+          await _premiumService.setPremium(true);
           setState(() => _isPremium = true);
-          _loadData();
         },
       ),
     );
@@ -238,19 +236,6 @@ class _SettingsTabState extends State<SettingsTab> {
             padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Text('其他', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold)),
           ),
-          if (_isPremium)
-            ListTile(
-              leading: const Icon(Icons.restore),
-              title: const Text('恢复购买'),
-              onTap: () async {
-                await _premiumService.restorePurchases();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('购买已恢复')),
-                  );
-                }
-              },
-            ),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('版本'),
@@ -286,31 +271,22 @@ class _SettingsTabState extends State<SettingsTab> {
 
 /// 高级版订阅底部弹窗
 class _PremiumSheet extends StatefulWidget {
-  final PremiumService premiumService;
   final VoidCallback onPurchased;
 
-  const _PremiumSheet({
-    required this.premiumService,
-    required this.onPurchased,
-  });
+  const _PremiumSheet({required this.onPurchased});
 
   @override
   State<_PremiumSheet> createState() => _PremiumSheetState();
 }
 
 class _PremiumSheetState extends State<_PremiumSheet> {
-  bool _loading = false;
-
   @override
   Widget build(BuildContext context) {
-    final products = widget.premiumService.products;
-    
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 拖动条
           Container(
             width: 40,
             height: 4,
@@ -320,7 +296,6 @@ class _PremiumSheetState extends State<_PremiumSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          
           const Text('🌟', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           const Text(
@@ -333,75 +308,36 @@ class _PremiumSheetState extends State<_PremiumSheet> {
             style: TextStyle(color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
-
-          // 功能列表
           const _FeatureItem(icon: '✅', text: '移除所有广告'),
           const _FeatureItem(icon: '✅', text: '无限喝水提醒'),
           const _FeatureItem(icon: '✅', text: '详细数据分析'),
           const _FeatureItem(icon: '✅', text: '多设备同步'),
           const _FeatureItem(icon: '✅', text: '更多主题和图标'),
           const SizedBox(height: 24),
-
-          // 订阅选项
-          if (products.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('正在加载订阅信息...'),
-              ),
-            )
-          else
-            ...products.map((product) {
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  title: Text(product.title.isEmpty ? product.id : product.title),
-                  subtitle: Text(product.description),
-                  trailing: Text(
-                    product.price,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  onTap: _loading ? null : () => _buy(product),
-                ),
-              );
-            }),
-
-          const SizedBox(height: 12),
-          
-          // 恢复购买
-          TextButton(
-            onPressed: () async {
-              await widget.premiumService.restorePurchases();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('购买已恢复')),
-                );
-              }
-            },
-            child: const Text('恢复购买'),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () async {
+                // TODO: 接入真实内购
+                Navigator.pop(context);
+                widget.onPurchased();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('🎉 感谢购买！高级版已激活'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+              child: const Text('立即升级 - ¥12/月'),
+            ),
           ),
-
           const SizedBox(height: 24),
         ],
       ),
     );
-  }
-
-  Future<void> _buy(ProductDetails product) async {
-    setState(() => _loading = true);
-    final success = await widget.premiumService.buy(product);
-    setState(() => _loading = false);
-    
-    if (success && mounted) {
-      widget.onPurchased();
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 感谢购买！高级版已激活'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
   }
 }
 

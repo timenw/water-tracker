@@ -29,7 +29,7 @@ class DataService {
 
   Future<int> getTodayWaterTotal() async {
     final records = await getTodayWaterRecords();
-    return records.fold(0, (sum, r) => sum + r.amount);
+    return records.fold<int>(0, (sum, r) => sum + r.amount);
   }
 
   Future<void> addWaterRecord(WaterRecord record) async {
