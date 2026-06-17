@@ -1,11 +1,14 @@
-// android/settings.gradle
 pluginManagement {
     def flutterSdkPath = {
         def properties = new Properties()
-        file("local.properties").withInputStream { properties.load(it) }
-        def flutterSdkPath = properties.getProperty("flutter.sdk")
-        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
-        return flutterSdkPath
+        def localProps = file("local.properties")
+        if (localProps.exists()) {
+            localProps.withInputStream { properties.load(it) }
+            def path = properties.getProperty("flutter.sdk")
+            if (path != null) return path
+        }
+        // Fallback for CI environment
+        return System.getenv("FLUTTER_ROOT") ?: "/opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter"
     }()
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
