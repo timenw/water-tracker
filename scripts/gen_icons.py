@@ -9,7 +9,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 import math
 
-OUTPUT_DIR = "/root/water-tracker/assets"
+# 使用相对路径，兼容 CI 环境
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, '..', 'assets')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Android 图标尺寸

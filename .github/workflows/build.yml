@@ -34,7 +34,7 @@ jobs:
 
       - name: Generate icons
         run: |
-          pip install pillow --break-system-packages
+          python3 -m pip install pillow
           python3 scripts/gen_icons.py
           mkdir -p android/app/src/main/res/{mipmap-mdpi,mipmap-hdpi,mipmap-xhdpi,mipmap-xxhdpi,mipmap-xxxhdpi}
           cp assets/android-mipmap-mdpi-icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
@@ -99,9 +99,9 @@ jobs:
 
       - name: Generate icons
         run: |
-          pip install pillow --break-system-packages
+          python3 -m pip install pillow
           python3 scripts/gen_icons.py
-          cp -r assets/Icon-App-*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
+          cp assets/Icon-App-*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
           cp assets/splash-*.png ios/Runner/Assets.xcassets/LaunchImage.imageset/
 
       - name: Build iOS (debug, no codesign)
