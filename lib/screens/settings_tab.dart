@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import '../services/data_service.dart';
 import '../services/notification_service.dart';
+import '../services/premium_service.dart';
 import '../models/data_models.dart';
 
 class SettingsTab extends StatefulWidget {
@@ -13,26 +15,30 @@ class SettingsTab extends StatefulWidget {
 class _SettingsTabState extends State<SettingsTab> {
   final DataService _dataService = DataService();
   final NotificationService _notificationService = NotificationService();
+  final PremiumService _premiumService = PremiumService();
+  
   UserProfile _profile = UserProfile();
   bool _loading = true;
+  bool _isPremium = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _loadData();
   }
 
-  Future<void> _loadProfile() async {
+  Future<void> _loadData() async {
     final profile = await _dataService.getUserProfile();
+    final isPremium = await _premiumService.isPremium();
     setState(() {
       _profile = profile;
+      _isPremium = isPremium;
       _loading = false;
     });
   }
 
   Future<void> _saveProfile() async {
     await _dataService.saveUserProfile(_profile);
-    // 重新安排提醒
     await _notificationService.scheduleWaterReminders(
       wakeUp: _profile.wakeUpTime ?? '08:00',
       sleepTime: _profile.sleepTime ?? '23:00',
@@ -74,56 +80,34 @@ class _SettingsTabState extends State<SettingsTab> {
   }
 
   Future<void> _showTimeDialog(bool isWakeUp) async {
+    final parts = (isWakeUp ? _profile.wakeUpTime : _profile.sleepTime)?.split(':') ?? ['08', '00'];
     final time = await showTimePicker(
       context: context,
-      initialTime: isWakeUp
-          ? TimeOfDay(hour: 8, minute: 0)
-          : TimeOfDay(hour: 23, minute: 0),
+      initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
     );
     if (time != null) {
       final timeStr = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-      if (isWakeUp) {
-        setState(() => _profile.wakeUpTime = timeStr);
-      } else {
-        setState(() => _profile.sleepTime = timeStr);
-      }
+      setState(() {
+        if (isWakeUp) _profile.wakeUpTime = timeStr;
+        else _profile.sleepTime = timeStr;
+      });
       _saveProfile();
     }
   }
 
-  Future<void> _showPremiumDialog() async {
-    await showDialog(
+  Future<void> _showPremiumSheet() async {
+    await showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('🌟 升级到高级版'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('解锁全部功能：'),
-            SizedBox(height: 8),
-            Text('✅ 无限喝水提醒'),
-            Text('✅ 详细数据分析'),
-            Text('✅ 多设备同步'),
-            Text('✅ 无广告体验'),
-            Text('✅ 更多主题'),
-            SizedBox(height: 16),
-            Text('¥12/月 或 ¥68/年', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('稍后再说')),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              // TODO: 接入内购
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('内购功能即将上线')),
-              );
-            },
-            child: const Text('立即升级'),
-          ),
-        ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _PremiumSheet(
+        premiumService: _premiumService,
+        onPurchased: () {
+          setState(() => _isPremium = true);
+          _loadData();
+        },
       ),
     );
   }
@@ -143,12 +127,12 @@ class _SettingsTabState extends State<SettingsTab> {
       body: ListView(
         children: [
           // ===== 高级版卡片 =====
-          if (!_profile.isPremium)
+          if (!_isPremium)
             Card(
               margin: const EdgeInsets.all(16),
               color: Colors.amber.shade50,
               child: InkWell(
-                onTap: _showPremiumDialog,
+                onTap: _showPremiumSheet,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -168,6 +152,29 @@ class _SettingsTabState extends State<SettingsTab> {
                       const Icon(Icons.chevron_right),
                     ],
                   ),
+                ),
+              ),
+            )
+          else
+            Card(
+              margin: const EdgeInsets.all(16),
+              color: Colors.green.shade50,
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text('✅', style: TextStyle(fontSize: 32)),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('高级版已激活', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('感谢您的支持！'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -226,11 +233,24 @@ class _SettingsTabState extends State<SettingsTab> {
 
           const Divider(),
 
-          // ===== 关于 =====
+          // ===== 其他 =====
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Text('关于', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold)),
+            child: Text('其他', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold)),
           ),
+          if (_isPremium)
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: const Text('恢复购买'),
+              onTap: () async {
+                await _premiumService.restorePurchases();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('购买已恢复')),
+                  );
+                }
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('版本'),
@@ -240,22 +260,16 @@ class _SettingsTabState extends State<SettingsTab> {
             leading: const Icon(Icons.privacy_tip_outlined),
             title: const Text('隐私政策'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: 打开隐私政策
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.star_outline),
             title: const Text('给我们评分'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: 打开 App Store 评分
-            },
+            onTap: () {},
           ),
 
           const SizedBox(height: 32),
-
-          // 底部版权
           Center(
             child: Text(
               'Water Tracker v1.0.0\nMade with ❤️',
@@ -264,6 +278,148 @@ class _SettingsTabState extends State<SettingsTab> {
             ),
           ),
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+/// 高级版订阅底部弹窗
+class _PremiumSheet extends StatefulWidget {
+  final PremiumService premiumService;
+  final VoidCallback onPurchased;
+
+  const _PremiumSheet({
+    required this.premiumService,
+    required this.onPurchased,
+  });
+
+  @override
+  State<_PremiumSheet> createState() => _PremiumSheetState();
+}
+
+class _PremiumSheetState extends State<_PremiumSheet> {
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final products = widget.premiumService.products;
+    
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖动条
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          const Text('🌟', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          const Text(
+            '升级到高级版',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '解锁全部功能，支持我们持续开发',
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 24),
+
+          // 功能列表
+          const _FeatureItem(icon: '✅', text: '移除所有广告'),
+          const _FeatureItem(icon: '✅', text: '无限喝水提醒'),
+          const _FeatureItem(icon: '✅', text: '详细数据分析'),
+          const _FeatureItem(icon: '✅', text: '多设备同步'),
+          const _FeatureItem(icon: '✅', text: '更多主题和图标'),
+          const SizedBox(height: 24),
+
+          // 订阅选项
+          if (products.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('正在加载订阅信息...'),
+              ),
+            )
+          else
+            ...products.map((product) {
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text(product.title.isEmpty ? product.id : product.title),
+                  subtitle: Text(product.description),
+                  trailing: Text(
+                    product.price,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  onTap: _loading ? null : () => _buy(product),
+                ),
+              );
+            }),
+
+          const SizedBox(height: 12),
+          
+          // 恢复购买
+          TextButton(
+            onPressed: () async {
+              await widget.premiumService.restorePurchases();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('购买已恢复')),
+                );
+              }
+            },
+            child: const Text('恢复购买'),
+          ),
+
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _buy(ProductDetails product) async {
+    setState(() => _loading = true);
+    final success = await widget.premiumService.buy(product);
+    setState(() => _loading = false);
+    
+    if (success && mounted) {
+      widget.onPurchased();
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🎉 感谢购买！高级版已激活'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+}
+
+class _FeatureItem extends StatelessWidget {
+  final String icon;
+  final String text;
+
+  const _FeatureItem({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Text(text, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );

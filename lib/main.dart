@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'services/notification_service.dart';
+import 'services/ad_service.dart';
+import 'services/premium_service.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/data_service.dart';
@@ -11,6 +13,16 @@ void main() async {
   // 初始化通知服务
   await NotificationService().init();
   await NotificationService().requestPermissions();
+  
+  // 初始化 AdMob
+  await AdService().init();
+  
+  // 初始化内购
+  await PremiumService().init();
+  
+  // 预加载广告
+  AdService().loadBanner();
+  AdService().loadInterstitial();
   
   // 设置状态栏样式
   SystemChrome.setSystemUIOverlayStyle(

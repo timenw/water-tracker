@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/data_service.dart';
+import '../services/ad_service.dart';
+import '../services/premium_service.dart';
 import '../models/data_models.dart';
 
 class WaterTab extends StatefulWidget {
@@ -16,14 +18,20 @@ class _WaterTabState extends State<WaterTab> {
   int _todayTotal = 0;
   int _dailyGoal = 2000;
   bool _loading = true;
+  bool _isPremium = false;
 
-  // 快速添加选项
   final List<int> _quickAmounts = [150, 250, 350, 500];
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _checkPremium();
+  }
+
+  Future<void> _checkPremium() async {
+    final premium = await PremiumService().isPremium();
+    if (mounted) setState(() => _isPremium = premium);
   }
 
   Future<void> _loadData() async {
@@ -46,9 +54,14 @@ class _WaterTabState extends State<WaterTab> {
       time: DateTime.now(),
     );
     await _dataService.addWaterRecord(record);
+    
+    // 非付费用户，记录喝水次数，适时展示插屏广告
+    if (!_isPremium) {
+      AdService().showInterstitial();
+    }
+    
     _loadData();
 
-    // 检查是否达到目标
     if (_todayTotal + amount >= _dailyGoal && _todayTotal < _dailyGoal) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,7 +144,6 @@ class _WaterTabState extends State<WaterTab> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    // 圆形进度指示器
                     SizedBox(
                       height: 180,
                       width: 180,
@@ -220,7 +232,6 @@ class _WaterTabState extends State<WaterTab> {
 
             const SizedBox(height: 12),
 
-            // 自定义按钮
             OutlinedButton.icon(
               onPressed: _showCustomAmountDialog,
               icon: const Icon(Icons.add),
@@ -299,6 +310,12 @@ class _WaterTabState extends State<WaterTab> {
                   ),
                 );
               }),
+
+            // ===== Banner 广告（仅非付费用户） =====
+            if (!_isPremium) ...[
+              const SizedBox(height: 16),
+              AdService().getBannerWidget(),
+            ],
           ],
         ),
       ),

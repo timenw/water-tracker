@@ -1,15 +1,30 @@
+# Water Tracker .gitignore
 # Flutter
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 build/
-ios/Pods/
+pubspec.lock
+
+# Android
 android/.gradle/
 android/captures/
 android/local.properties
 android/**/gradle-wrapper.jar
 android/**/GeneratedPluginRegistrant.java
+android/key.properties
+android/app/keystore.jks
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner/Info.plist
 
 # IDE
 .idea/
@@ -20,6 +35,7 @@ android/**/GeneratedPluginRegistrant.java
 .DS_Store
 Thumbs.db
 
-# Secrets
-android/key.properties
-android/app/keystore.jks
+# Keep these
+!assets/
+!scripts/
+!.github/

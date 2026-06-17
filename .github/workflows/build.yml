@@ -1,0 +1,120 @@
+name: Build Android & iOS
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  # ========== Android 构建 ==========
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate icons
+        run: |
+          pip install pillow --break-system-packages
+          python3 scripts/gen_icons.py
+          mkdir -p android/app/src/main/res/{mipmap-mdpi,mipmap-hdpi,mipmap-xhdpi,mipmap-xxhdpi,mipmap-xxxhdpi}
+          cp assets/android-mipmap-mdpi-icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          cp assets/android-mipmap-hdpi-icon.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp assets/android-mipmap-xhdpi-icon.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp assets/android-mipmap-xxhdpi-icon.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp assets/android-mipmap-xxxhdpi-icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+      - name: Build APK (debug)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: flutter build apk --debug
+
+      - name: Build APK (release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: flutter build apk --release
+
+      - name: Build App Bundle (release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: flutter build appbundle --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
+
+      - name: Upload AAB
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: build/app/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ========== iOS 构建 ==========
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate icons
+        run: |
+          pip install pillow --break-system-packages
+          python3 scripts/gen_icons.py
+          cp -r assets/Icon-App-*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
+          cp assets/splash-*.png ios/Runner/Assets.xcassets/LaunchImage.imageset/
+
+      - name: Build iOS (debug, no codesign)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: flutter build ios --debug --no-codesign
+
+      - name: Build iOS (release, no codesign)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/Runner.app
+          retention-days: 30
