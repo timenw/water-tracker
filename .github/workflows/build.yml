@@ -34,7 +34,9 @@ jobs:
 
       - name: Generate icons
         run: |
-          python3 -m pip install pillow
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install pillow
           python3 scripts/gen_icons.py
           mkdir -p android/app/src/main/res/{mipmap-mdpi,mipmap-hdpi,mipmap-xhdpi,mipmap-xxhdpi,mipmap-xxxhdpi}
           cp assets/android-mipmap-mdpi-icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
@@ -99,7 +101,9 @@ jobs:
 
       - name: Generate icons
         run: |
-          python3 -m pip install pillow
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install pillow
           python3 scripts/gen_icons.py
           cp assets/Icon-App-*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
           cp assets/splash-*.png ios/Runner/Assets.xcassets/LaunchImage.imageset/
