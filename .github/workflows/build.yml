@@ -82,43 +82,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ========== iOS 构建 ==========
-  build-ios:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate icons
-        run: |
-          python3 -m venv /tmp/venv
-          source /tmp/venv/bin/activate
-          pip install pillow
-          python3 scripts/gen_icons.py
-          cp assets/Icon-App-*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
-          cp assets/splash-*.png ios/Runner/Assets.xcassets/LaunchImage.imageset/
-
-      - name: Build iOS (debug, no codesign)
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        run: flutter build ios --debug --no-codesign
-
-      - name: Build iOS (release, no codesign)
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: flutter build ios --release --no-codesign
-
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-app
-          path: build/ios/iphoneos/Runner.app
-          retention-days: 30
+  # ========== iOS 构建（需要 macOS + Xcode 项目）==========
+  # 注意：iOS 构建需要完整的 Xcode 项目文件
+  # 建议在本地用 Xcode 打开 ios/Runner.xcodeproj 后提交
+  # 或者使用 codemagic.io 等专门的 iOS CI 服务
+  #
+  # build-ios:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: '3.24.0'
+  #         channel: 'stable'
+  #     - run: flutter pub get
+  #     - run: flutter build ios --release --no-codesign
