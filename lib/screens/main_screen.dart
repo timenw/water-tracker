@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/data_service.dart';
-import '../models/data_models.dart';
-import 'water_tab.dart';
-import 'weight_tab.dart';
-import 'stats_tab.dart';
-import 'settings_tab.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,18 +9,19 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  
-  final List<Widget> _tabs = [
-    const WaterTab(),
-    const WeightTab(),
-    const StatsTab(),
-    const SettingsTab(),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _tabs[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: const [
+          _WaterTab(),
+          _WeightTab(),
+          _StatsTab(),
+          _SettingsTab(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
@@ -52,6 +47,74 @@ class _MainScreenState extends State<MainScreen> {
             label: '设置',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WaterTab extends StatelessWidget {
+  const _WaterTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('💧 喝水记录'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text('喝水功能开发中...', style: TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+}
+
+class _WeightTab extends StatelessWidget {
+  const _WeightTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('⚖️ 体重追踪'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text('体重功能开发中...', style: TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+}
+
+class _StatsTab extends StatelessWidget {
+  const _StatsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('📊 数据统计'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text('统计功能开发中...', style: TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+}
+
+class _SettingsTab extends StatelessWidget {
+  const _SettingsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('⚙️ 设置'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text('设置功能开发中...', style: TextStyle(fontSize: 18)),
       ),
     );
   }
