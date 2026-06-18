@@ -64,6 +64,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Debug - Check Android config
+        run: |
+          echo "=== android/app/build.gradle ==="
+          cat android/app/build.gradle
+          echo "=== android/settings.gradle ==="
+          cat android/settings.gradle
+          echo "=== flutter doctor ==="
+          flutter doctor -v
+
       - name: Build APK (debug)
         if: "!startsWith(github.ref, 'refs/tags/v')"
         run: flutter build apk --debug
