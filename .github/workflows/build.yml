@@ -25,6 +25,20 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Backup Dart source
+        run: |
+          cp -r lib /tmp/water_tracker_lib
+          cp pubspec.yaml /tmp/water_tracker_pubspec.yaml
+
+      - name: Create Flutter project
+        run: flutter create --org com.timenw --project-name water_tracker .
+
+      - name: Restore Dart source
+        run: |
+          rm -rf lib
+          cp -r /tmp/water_tracker_lib lib
+          cp /tmp/water_tracker_pubspec.yaml pubspec.yaml
+
       - name: Install dependencies
         run: flutter pub get
 
