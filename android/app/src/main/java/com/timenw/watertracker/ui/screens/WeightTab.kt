@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.timenw.watertracker.data.model.WeightRecord
 import com.timenw.watertracker.ui.components.EmptyStateView
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +29,7 @@ fun WeightTab(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var weightInput by remember { mutableStateOf("") }
-    val formatter = remember { DateTimeFormatter.ofPattern("MM-dd HH:mm") }
+    val formatter = remember { SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         CenterAlignedTopAppBar(
@@ -138,7 +139,7 @@ fun WeightTab(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = record.timestamp.format(formatter),
+                                    text = formatter.format(Date(record.timestamp)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

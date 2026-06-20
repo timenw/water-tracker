@@ -18,7 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.timenw.watertracker.data.model.DailyWaterGoal
 import com.timenw.watertracker.data.model.WeightRecord
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,7 +151,8 @@ fun StatsTab(
 @Composable
 fun WaterBarChart(data: List<DailyWaterGoal>) {
     val maxAmount = data.maxOfOrNull { it.targetAmount } ?: 2000
-    val dayFormatter = remember { DateTimeFormatter.ofPattern("E") }
+    val dayFormatter = SimpleDateFormat("E", Locale.getDefault())
+    val parseFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     Row(
         modifier = Modifier
@@ -200,7 +202,11 @@ fun WaterBarChart(data: List<DailyWaterGoal>) {
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = goal.date.format(dayFormatter),
+                    text = try {
+                        dayFormatter.format(parseFormatter.parse(goal.date) ?: Date())
+                    } catch (e: Exception) {
+                        goal.date
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

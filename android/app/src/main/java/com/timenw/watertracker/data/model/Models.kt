@@ -1,24 +1,21 @@
 package com.timenw.watertracker.data.model
 
-import java.time.LocalDate
-import java.time.LocalDateTime
-
 data class WaterRecord(
     val id: Long = System.currentTimeMillis(),
     val amount: Int, // ml
-    val timestamp: LocalDateTime = LocalDateTime.now(),
-    val date: LocalDate = LocalDate.now()
+    val timestamp: Long = System.currentTimeMillis(),
+    val date: String = java.time.LocalDate.now().toString()
 )
 
 data class WeightRecord(
     val id: Long = System.currentTimeMillis(),
     val weight: Float, // kg
-    val timestamp: LocalDateTime = LocalDateTime.now(),
-    val date: LocalDate = LocalDate.now()
+    val timestamp: Long = System.currentTimeMillis(),
+    val date: String = java.time.LocalDate.now().toString()
 )
 
 data class DailyWaterGoal(
-    val date: LocalDate = LocalDate.now(),
+    val date: String = java.time.LocalDate.now().toString(),
     val targetAmount: Int = 2000, // ml
     val currentAmount: Int = 0
 ) {

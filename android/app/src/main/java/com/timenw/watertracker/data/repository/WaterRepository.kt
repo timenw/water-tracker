@@ -9,7 +9,6 @@ import java.time.LocalDate
 class WaterRepository(private val context: Context) {
     private val prefs = context.getSharedPreferences("water_tracker", Context.MODE_PRIVATE)
     private val gson = Gson()
-    private val editor = prefs.edit()
 
     // Water records
     fun getWaterRecords(date: LocalDate = LocalDate.now()): List<WaterRecord> {
@@ -21,7 +20,7 @@ class WaterRepository(private val context: Context) {
 
     fun addWaterRecord(amount: Int, date: LocalDate = LocalDate.now()) {
         val records = getWaterRecords(date).toMutableList()
-        records.add(WaterRecord(amount = amount, date = date))
+        records.add(WaterRecord(amount = amount))
         saveWaterRecords(records, date)
     }
 
@@ -37,7 +36,7 @@ class WaterRepository(private val context: Context) {
 
     private fun saveWaterRecords(records: List<WaterRecord>, date: LocalDate) {
         val key = "water_${date}"
-        editor.putString(key, gson.toJson(records)).apply()
+        prefs.edit().putString(key, gson.toJson(records)).apply()
     }
 
     // Weight records
@@ -48,19 +47,19 @@ class WaterRepository(private val context: Context) {
     }
 
     fun getWeightRecordsForDate(date: LocalDate): List<WeightRecord> {
-        return getWeightRecords().filter { it.date == date }
+        return getWeightRecords().filter { it.date == date.toString() }
     }
 
     fun addWeightRecord(weight: Float) {
         val records = getWeightRecords().toMutableList()
         records.add(WeightRecord(weight = weight))
-        editor.putString("weight_records", gson.toJson(records)).apply()
+        prefs.edit().putString("weight_records", gson.toJson(records)).apply()
     }
 
     fun removeWeightRecord(id: Long) {
         val records = getWeightRecords().toMutableList()
         records.removeAll { it.id == id }
-        editor.putString("weight_records", gson.toJson(records)).apply()
+        prefs.edit().putString("weight_records", gson.toJson(records)).apply()
     }
 
     fun getLatestWeight(): Float? {
@@ -78,7 +77,7 @@ class WaterRepository(private val context: Context) {
     }
 
     fun saveSettings(settings: UserSettings) {
-        editor.putString("settings", gson.toJson(settings)).apply()
+        prefs.edit().putString("settings", gson.toJson(settings)).apply()
     }
 
     // Stats
@@ -88,13 +87,13 @@ class WaterRepository(private val context: Context) {
         return (0..6).map { daysAgo ->
             val date = today.minusDays(daysAgo.toLong())
             val total = getDailyWaterTotal(date)
-            DailyWaterGoal(date = date, targetAmount = settings.dailyWaterTarget, currentAmount = total)
+            DailyWaterGoal(date = date.toString(), targetAmount = settings.dailyWaterTarget, currentAmount = total)
         }.reversed()
     }
 
     fun getMonthlyWeightData(): List<WeightRecord> {
         val today = LocalDate.now()
-        val monthAgo = today.minusDays(30)
-        return getWeightRecords().filter { it.date >= monthAgo }.sortedBy { it.date }
+        val monthAgo = today.minusDays(30).toString()
+        return getWeightRecords().filter { it.date >= monthAgo }.sortedBy { it.timestamp }
     }
 }

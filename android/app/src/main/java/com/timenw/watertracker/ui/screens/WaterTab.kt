@@ -20,7 +20,8 @@ import com.timenw.watertracker.data.model.DailyWaterGoal
 import com.timenw.watertracker.data.model.WaterRecord
 import com.timenw.watertracker.ui.components.CircularProgressIndicator
 import com.timenw.watertracker.ui.components.EmptyStateView
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +33,7 @@ fun WaterTab(
 ) {
     var showCustomDialog by remember { mutableStateOf(false) }
     var customAmount by remember { mutableStateOf("") }
-    val formatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val formatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Top bar
@@ -176,7 +177,7 @@ fun WaterTab(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = record.timestamp.format(formatter),
+                                    text = formatter.format(Date(record.timestamp)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
