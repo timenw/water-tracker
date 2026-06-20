@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.timenw.watertracker.data.model.DailyWaterGoal
 import com.timenw.watertracker.data.model.WaterRecord
 import com.timenw.watertracker.ui.components.CircularProgressIndicator
@@ -123,7 +123,7 @@ fun WaterTab(
                     onClick = { showCustomDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        = Modifier.height(48.dp)
+                        .height(48.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))

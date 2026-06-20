@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.timenw.watertracker.data.repository.WaterRepository
+import com.timenw.watertracker.data.model.DailyWaterGoal
 import com.timenw.watertracker.ui.screens.*
 import com.timenw.watertracker.ui.theme.WaterTrackerTheme
 import java.time.LocalDate
