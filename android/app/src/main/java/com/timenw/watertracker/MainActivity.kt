@@ -57,7 +57,7 @@ fun MainScreen(repository: WaterRepository) {
 
     val dailyGoal = remember(waterRecords.value, settings.value) {
         DailyWaterGoal(
-            date = today,
+            date = today.toString(),
             targetAmount = settings.value.dailyWaterTarget,
             currentAmount = waterRecords.value.sumOf { it.amount }
         )
