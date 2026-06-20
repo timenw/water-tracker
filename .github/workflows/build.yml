@@ -34,11 +34,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x android/gradlew
+      - name: Install Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt/
+          export PATH="/opt/gradle-8.5/bin:$PATH"
+          gradle --version
+          echo "GRADLE_HOME=/opt/gradle-8.5" >> $GITHUB_ENV
+          echo "/opt/gradle-8.5/bin" >> $GITHUB_PATH
 
       - name: Build debug APK
-        run: cd android && ./gradlew assembleDebug --no-daemon
+        run: |
+          cd android
+          gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
