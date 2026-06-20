@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">喝水提醒</string>
+    <string name="tab_water">喝水</string>
+    <string name="tab_weight">体重</string>
+    <string name="tab_stats">统计</string>
+    <string name="tab_settings">设置</string>
+</resources>
