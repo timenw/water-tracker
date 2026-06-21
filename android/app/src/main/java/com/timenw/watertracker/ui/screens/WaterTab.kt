@@ -85,7 +85,7 @@ fun WaterTab(
                 }
             }
 
-            // Quick add buttons
+            // Quick add buttons grid
             item {
                 Text(
                     text = "快速添加",
@@ -95,26 +95,60 @@ fun WaterTab(
             }
 
             item {
-                Row(
+                // 2 rows x 3 cols grid for quick add buttons
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    listOf(100, 200, 250, 300, 500).forEach { amount ->
-                        FilledTonalButton(
-                            onClick = { onAddWater(amount) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        ) {
-                            Text(
-                                text = "+${amount}ml",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                    // Row 1: 100, 200, 250
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        listOf(100, 200, 250).forEach { amount ->
+                            FilledTonalButton(
+                                onClick = { onAddWater(amount) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = "+${amount}ml",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
+                    }
+                    // Row 2: 300, 500
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        listOf(300, 500).forEach { amount ->
+                            FilledTonalButton(
+                                onClick = { onAddWater(amount) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = "+${amount}ml",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        // Spacer to balance the row
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
