@@ -70,7 +70,7 @@ fun WaterTab(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "${dailyGoal.currentAmount} / ${dailyGoal.targetAmount}",
+                        text = "${dailyGoal.currentAmount} / ${dailyGoal.targetAmount} ml",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -203,7 +203,7 @@ fun WaterTab(
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${record.amount}",
+                                    text = "${record.amount} ml",
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -238,7 +238,7 @@ fun WaterTab(
                 OutlinedTextField(
                     value = customAmount,
                     onValueChange = { customAmount = it.filter { c -> c.isDigit() } },
-                    label = { Text("水量") },
+                    label = { Text("ml") },
                     singleLine = true
                 )
             },
