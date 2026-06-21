@@ -1,8 +1,12 @@
 package com.timenw.watertracker
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,6 +14,7 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -18,19 +23,57 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.timenw.watertracker.data.repository.WaterRepository
 import com.timenw.watertracker.data.model.DailyWaterGoal
+import com.timenw.watertracker.service.ReminderReceiver
 import com.timenw.watertracker.ui.screens.*
 import com.timenw.watertracker.ui.theme.WaterTrackerTheme
 import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var repository: WaterRepository
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            setupReminder()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val repository = WaterRepository(applicationContext)
+        repository = WaterRepository(applicationContext)
+
+        // 请求通知权限并设置提醒
+        requestNotificationPermission()
 
         setContent {
             WaterTrackerTheme {
-                MainScreen(repository)
+                MainScreen(repository) { setupReminder() }
             }
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                setupReminder()
+            }
+        } else {
+            setupReminder()
+        }
+    }
+
+    private fun setupReminder() {
+        val settings = repository.getSettings()
+        if (settings.reminderEnabled) {
+            ReminderReceiver.scheduleNextReminder(this, settings.reminderIntervalMinutes)
+        } else {
+            ReminderReceiver.cancelReminder(this)
         }
     }
 }
@@ -43,7 +86,7 @@ sealed class Screen(val route: String, val label: String, val selectedIcon: @Com
 }
 
 @Composable
-fun MainScreen(repository: WaterRepository) {
+fun MainScreen(repository: WaterRepository, onSettingsChanged: () -> Unit = {}) {
     val navController = rememberNavController()
     val screens = listOf(Screen.Water, Screen.Weight, Screen.Stats, Screen.Settings)
 
@@ -142,6 +185,7 @@ fun MainScreen(repository: WaterRepository) {
                     onSettingsChanged = { newSettings ->
                         repository.saveSettings(newSettings)
                         settings.value = newSettings
+                        onSettingsChanged()
                     }
                 )
             }
