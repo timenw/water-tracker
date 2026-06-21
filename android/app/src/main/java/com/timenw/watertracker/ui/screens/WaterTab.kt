@@ -85,7 +85,7 @@ fun WaterTab(
                 }
             }
 
-            // Quick add buttons grid: 50-500ml, step 50
+            // Quick add buttons grid: 50, 100, 200, 300, 400, 500
             item {
                 Text(
                     text = "快速添加",
@@ -99,12 +99,12 @@ fun WaterTab(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Row 1: 50, 100, 150, 200, 250
+                    // Row 1: 50, 100, 200
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        (50..250 step 50).forEach { amount ->
+                        listOf(50, 100, 200).forEach { amount ->
                             FilledTonalButton(
                                 onClick = { onAddWater(amount) },
                                 modifier = Modifier
@@ -123,12 +123,12 @@ fun WaterTab(
                             }
                         }
                     }
-                    // Row 2: 300, 350, 400, 450, 500
+                    // Row 2: 300, 400, 500
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        (300..500 step 50).forEach { amount ->
+                        listOf(300, 400, 500).forEach { amount ->
                             FilledTonalButton(
                                 onClick = { onAddWater(amount) },
                                 modifier = Modifier
