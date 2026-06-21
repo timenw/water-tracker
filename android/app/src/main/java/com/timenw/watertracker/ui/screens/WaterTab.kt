@@ -116,7 +116,7 @@ fun WaterTab(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(
-                                    text = "+${amount}",
+                                    text = "$amount",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -140,7 +140,7 @@ fun WaterTab(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(
-                                    text = "+${amount}",
+                                    text = "$amount",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold
                                 )
