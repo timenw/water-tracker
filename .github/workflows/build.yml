@@ -48,19 +48,29 @@ jobs:
           cd android
           gradle assembleDebug --no-daemon --stacktrace
 
+      - name: Rename APK with version info
+        run: |
+          VERSION=$(grep "versionName" android/app/build.gradle.kts | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          DATE=$(date +%Y%m%d)
+          SHORT_SHA=${GITHUB_SHA::7}
+          APK_NAME="WaterTracker-v${VERSION}-${DATE}-${SHORT_SHA}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "/tmp/${APK_NAME}"
+          echo "APK_NAME=${APK_NAME}" >> $GITHUB_ENV
+          echo "Renamed APK to: ${APK_NAME}"
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: water-tracker-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: /tmp/${{ env.APK_NAME }}
 
       - name: Create Release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v1.0.0
-          name: "喝水提醒 v1.0.0"
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: v${{ env.APK_NAME }}
+          name: "喝水提醒 ${{ env.APK_NAME }}"
+          files: /tmp/${{ env.APK_NAME }}
           draft: false
           prerelease: false
         env:
